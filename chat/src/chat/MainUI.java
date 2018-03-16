@@ -118,11 +118,51 @@ public class MainUI {
 	 */
 	public void Receiving() {
 		if(nbtn==1) {//tcp client
-			System.out.println("tcp client sending..."+message);
-			cs.SendInfor(message);
+
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+			
+				String data = null;
+				try {
+					String clientAddress = cs.getSocket().getInetAddress().getHostAddress();
+					
+			        System.out.println("\r\nNew connection from " + clientAddress);
+			        
+			        BufferedReader in = new BufferedReader(
+			                new InputStreamReader(cs.getSocket().getInputStream()));        
+			        while ( (data = in.readLine()) != null ) {
+			            System.out.println("\r\nMessage from " + clientAddress + ": " + data);
+			        }
+			        
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				}
+				}).start(); 
+			
+			
 		}else if(nbtn==3) {  //UDP client
-			System.out.println("UDP client sending..."+message);
-			udpClient.sending(message);
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					DatagramSocket receiveSocket = null;
+					try {  
+			            while(true){  
+			                byte[] buf = new byte[1024];  
+			                DatagramPacket dp = new DatagramPacket(buf, buf.length);  
+			                receiveSocket.receive(dp);  
+			                String data = new String(dp.getData(), 0, dp.getLength());  
+			                
+			                chatHistory.setText(chatHistory.getText()+"\\r\\n "+dp.getAddress().getHostAddress()+":"+data);
+			                System.out.println("Other:" + data);  
+			            }  
+			        } catch (IOException e) {  
+			            System.out.println("receive fail");  
+			        }
+					}
+				}).start(); 
 		}/*else if(nbtn==0) {  //tcp server
 			System.out.println("tcp server sending..."+message);
 			sc.SendInfor(message,messageIP,messagePort);
